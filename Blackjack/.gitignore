@@ -1,0 +1,6 @@
+/node_modules/
+/bin/Debug
+/obj/
+**/wwwroot/lib/
+appsettings.Development.json
+Blackjack.pdb

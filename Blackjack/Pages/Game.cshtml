@@ -1,0 +1,206 @@
+@page
+@{
+    ViewData["Title"] = "Play";
+}
+
+<div id="intro" class="pt-4 text-center">
+    <h1 class="display-5">Enter a username, then press 'Start' to play the first round!</h1>
+    <form id="players-form" class="p-3">
+        <div class="add-player d-flex justify-content-center align-items-center mb-2">
+            <label for="player-1">Username:</label>
+            <input type="text" id="player-1" name="player-1">
+                <div class="add-player-btn-cont">
+                <button type="submit" id="add-player-btn">+</button>
+            </div>
+        </div>
+    </form>
+</div>
+<div id="game-container" class="d-none d-flex">
+    <div id="game" class="d-flex flex-column container-fluid">
+        <header id="game-header" class="d-flex align-items-center">
+            <span id="username"></span>
+            <h1 id="round">Round<span id="round-num"></span>!</h1>
+            <div id="supp-container" class="d-flex align-items-center justify-content-end">
+                <span id="record" class="collapsed d-none">
+                    <span>W:</span><span id="wins">0</span><span>D:</span><span id="draws">0</span><span>L:</span><span id="losses">0</span><span>B:</span><span id="busts">0</span>
+                </span>
+                <div id="record-switch" class="form-check form-switch">
+                    <label for="record-option" class="visually-hidden">Switch to toggle statistics display</label>
+                    <input type="checkbox" id="record-option" class="form-check-input" autocomplete="off" role="switch" aria-checked="false" aria-label="Switch to toggle statistics display">
+                </div>
+                <button type="button" id="open-settings" data-bs-toggle="modal" data-bs-target="#settings-modal" aria-label="Button to open and display settings modal">
+                    <i class="fa fa-cog"></i>
+                </button>
+            </div>
+        </header>
+        <div id="play-area" class="d-flex flex-column justify-content-between">
+            <div id="play-area-overlay" class="overlay">
+                <div id="play-area-overlay-border-one" class="overlay">
+                    <div id="play-area-overlay-border-two" class="overlay"></div>
+                </div>
+            </div>
+            <div id="dealer-position" class="d-flex flex-column justify-content-center align-items-center">
+                <div id="dealer-hand">
+                    <div class="cards"></div>
+                </div>
+                <div class="card-status"></div>
+            </div>
+            <div id="player-positions" class="d-flex justify-content-around"></div>
+        </div>
+        <div class="player-actions d-flex justify-content-center"></div>
+    </div>
+    <button type="button" id="toggle-sidebar" class="d-flex justify-content-center" aria-label="Button to toggle sidebar display">
+        <i></i>
+    </button>
+    <aside class="attached collapsed">
+        <div id="sidebar-overlay" class="overlay"></div>
+        <div id="sidebar" class="d-flex flex-column collapsed">
+            <div id="sidebar-header-wrapper" class="visually-hidden">
+                <header id="sidebar-header">
+                    <nav>
+                        <ul class="nav nav-pills nav-fill">
+                            <li class="nav-item">
+                                <button id="log-tab" class="nav-link active">Log</button>
+                            </li>
+                            <li class="nav-item">
+                                <button id="chat-tab" class="nav-link">Chat</button>
+                            </li>
+                        </ul>
+                    </nav>
+                </header>
+                <hr />
+            </div>
+            <div id="sidebar-content-wrapper" class="visually-hidden d-flex flex-column-reverse">
+                <section id="log">
+                    <h5 class="visually-hidden">Game Log</h5>
+                </section>
+                <section id="chat" class="d-none">
+                    <h5 class="visually-hidden">Chat Log</h5>
+                    <div id="chat-messages" class="d-flex flex-column"></div>
+                    <form id="send-chat-message" class="d-flex">
+                        <label for="chat-message" class="visually-hidden">Enter a message...</label>
+                        <textarea id="chat-message" name="chat-message" cols="20" wrap="hard" placeholder="Enter a message..." autocomplete="on" aria-label="Enter a message..."></textarea>
+                        <button type="submit" id="submit-msg-btn" value="Send" disabled="true" aria-label="Send">
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </form>
+                </section>
+            </div>
+        </div>
+    </aside>
+</div>
+<div class="modal fade" id="settings-modal" tabindex="-1" data-bs-backdrop="static" aria-labelledby="settings-modal-title" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 id="settings-modal-title" class="modal-title fs-5">Game settings</h1>
+                <button type="button" class="close-settings btn-close" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="settings-form">
+                    <section>
+                        <h6>Log:</h6>
+                        <div class="form-check form-switch">
+                            <label class="form-check-label" for="action-log-msgs-enabled">View actions</label>
+                            <input type="checkbox" id="action-log-msgs-enabled" name="action-log-msgs-enabled" class="form-check-input" role="switch" autocomplete="off" aria-label="Switch to toggle viewing dealer's log messages" checked="true"/>
+                        </div>
+                        <div class="form-check form-switch">
+                            <label class="form-check-label" for="dealer-record-log-msgs-enabled">View dealer's record</label>
+                            <input type="checkbox" id="dealer-record-log-msgs-enabled" name="dealer-record-log-msgs-enabled" class="form-check-input" role="switch" autocomplete="off" aria-label="Switch to toggle viewing dealer's log messages" checked="true"/>
+                            <div class="radio-setting">
+                                <span>Dealer's record is per:</span>
+                                <input type="radio" id="per-round" name="dealer-record" class="btn-check" autocomplete="off" value="round" checked="true">
+                                <label class="btn btn-secondary" for="per-round">Round</label>
+                                <input type="radio" id="per-player" name="dealer-record" class="btn-check" autocomplete="off" value="player">
+                                <label class="btn btn-secondary" for="per-player">Player</label>
+                            </div>
+                        </div>
+                        <div class="form-check form-switch">
+                            <label class="form-check-label" for="others-log-msgs-enabled">View messages about other players</label>
+                            <input type="checkbox" id="others-log-msgs-enabled" name="others-log-msgs-enabled" class="form-check-input" role="switch" autocomplete="off" aria-label="Switch to toggle viewing other players' log messages" checked="true"/>
+                            <div class="form-check form-switch">
+                                <label class="form-check-label" for="others-records-log-msgs-enabled">View other players' records</label>
+                                <input type="checkbox" id="others-records-log-msgs-enabled" name="others-records-log-msgs-enabled" class="form-check-input" role="switch" autocomplete="off" aria-label="Switch to toggle viewing other players' log messages" checked="true"/>
+                            </div>
+                        </div>
+                    </section>
+                    <hr>
+                    <section>
+                        <h6>Chat:</h6>
+                        <div class="form-check form-switch">
+                            <label class="form-check-label" for="chat-enabled">Enable chat</label>
+                            <input type="checkbox" id="chat-enabled" name="chat-enabled" class="form-check-input" role="switch" autocomplete="off" aria-label="Switch to toggle chat panel" checked="true"/>
+                        </div>
+                    </section>
+                    <hr>
+                    <section id ="upcoming-features">
+                        <h6>Upcoming features!</h6>           
+                        <div class="radio-setting">
+                            <span>Theme:</span>
+                            <input type="radio" id="default-theme" name="theme" class="btn-check" autocomplete="off" checked="true" disabled="true">
+                            <label class="btn btn-secondary" for="default-theme">Default</label>
+                            <input type="radio" id="inverse-theme" name="theme" class="btn-check" autocomplete="off" id="inverse-theme" disabled="true">
+                            <label class="btn btn-secondary" for="inverse-theme">Inverse</label>
+                            <input type="radio" id="casino-theme" name="theme" class="btn-check" autocomplete="off" disabled="true">
+                            <label class="btn btn-secondary" for="casino-theme">Casino</label>
+                        </div>
+                        <div class="form-check form-switch">
+                            <label class="form-check-label" for="other-hands-enabled">View other players' hands</label>
+                            <input type="checkbox" id="other-hands-enabled" name="other-hands-enabled" class="form-check-input" autocomplete="off" role="switch" aria-label="Switch to toggle viewing other players' hands" disabled="true"/>
+                        </div>
+                        @* <div>
+                            <label for="num-decks" class="form-label">Number of decks in shuffler:</label>
+                            <div class="d-flex">
+                                <input type="range" id="num-decks" name="num-decks" class="form-range" min="1" max="9" value="5"/>
+                                <span id="num-decks-counter"></span>
+                            </div>
+                            <script type="text/javascript">
+                                let numDecksEl = document.getElementById("num-decks");
+
+                                function displayNumDecksCounter(e) {
+                                    document.getElementById("num-decks-counter").textContent = `${
+                                        e.target.value || numDecksEl.getAttribute("value")
+                                    }`;
+                                }
+
+                                window.addEventListener("load", displayNumDecksCounter);
+                                numDecksEl.addEventListener("mousemove", displayNumDecksCounter);
+                                numDecksEl.addEventListener("touchmove", displayNumDecksCounter);
+                                numDecksEl.addEventListener("click", displayNumDecksCounter);
+                            </script>
+                        </div> *@
+                    </section>
+                </form>
+            </div>
+           <div class="modal-footer">
+                <button type="reset" form="settings-form" class="btn btn-secondary" style="margin-right: auto;">Reset</button>
+                <button type="button" class="close-settings btn btn-secondary">Close</button>
+                <button type="submit" form="settings-form" class="btn btn-primary" data-bs-dismiss="modal">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="confirm-modal" tabindex="-1" data-bs-backdrop="static" aria-labelledby="confirm-modal-title" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 id="confirm-modal-title" class="modal-title fs-5">Confirm unsaved changes</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to dismiss unsaved changes?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
+                <button type="button" id="dismiss-unsaved-settings" class="btn btn-primary" data-bs-dismiss="modal">Yes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts
+{
+  <script src="~/js/signalr.min.js"></script>
+  <script src="~/js/clientconn.js" asp-append-version="true"></script>
+  <script src="~/js/game.js" asp-append-version="true"></script>
+}

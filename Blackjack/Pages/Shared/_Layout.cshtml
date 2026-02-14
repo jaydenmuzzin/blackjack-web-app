@@ -1,0 +1,71 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Blackjack</title>
+    <script type="importmap"></script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" crossorigin="anonymous" type="text/css">
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" type="text/css" />
+    <link rel="stylesheet" href="~/css/site.css" type="text/css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/styles.css" type="text/css" asp-append-version="true" />
+</head>
+<body>
+    <header id="page-header">
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light box-shadow">
+            <div class="container">
+                <a class="navbar-brand" asp-area="" asp-page="/Index">Blackjack</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    <ul class="navbar-nav flex-grow-1">
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-page="/Index">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-page="/Updates">Updates</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-page="/Issues">Issues</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+    
+    <main>
+        @RenderBody()
+    </main>
+
+    <footer class="footer d-flex justify-content-center align-items-center border-top text-muted">
+        <div class="text-center">
+            &copy; Jayden Muzzin
+            <span class="copyright-years">2025</span>, licensed under 
+            <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a>
+            <img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;">
+            <img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;">
+            <img src="https://mirrors.creativecommons.org/presskit/icons/nc.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;">
+            <img src="https://mirrors.creativecommons.org/presskit/icons/sa.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;">
+            <div class="footer-links d-inline-flex">
+                <span>&#124;</span>
+                <span>
+                    <a href="https://www.linkedin.com/in/jayden-muzzin-57085915a/" target="_blank" class="sm-link">
+                        <i class="fa-brands fa-linkedin-in" aria-hidden="true"></i><span class="visually-hidden">Jayden's LinkedIn</span></a>&#124;</span>
+                <span>
+                    <a href="https://github.com/jaydenmuzzin" target="_blank" class="sm-link">
+                        <i class="fa-brands fa-github" aria-hidden="true"></i><span class="visually-hidden">Jayden's GitHub</span></a></span>
+            </div>
+        </div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
