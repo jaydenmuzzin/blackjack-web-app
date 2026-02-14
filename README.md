@@ -22,8 +22,7 @@ I have also included the Visual Studio solution file (.sln) in this repository w
 
 ## Using the application
 To use the application:
-  1. Install the latest .NET 9.0 version on your machine, which can be obtained [here](https://dotnet.microsoft.com/en-us/download/dotnet/9.0).
-    - Windows users should only need the ASP.NET Core Runtime. MacOS users will need the SDK which includes the ASP.NET Core Runtime.
+  1. Install the latest .NET 9.0 version on your machine, which can be obtained [here](https://dotnet.microsoft.com/en-us/download/dotnet/9.0) (Windows users should only need the ASP.NET Core Runtime. MacOS users will need the SDK which includes the ASP.NET Core Runtime.)
   2. Ensure the active branch of this repository is 'master'
   3. Click the 'Clone or download' dropdown
   4. Click 'Download ZIP'
@@ -31,7 +30,7 @@ To use the application:
   6. Extract the contents of the file to your chosen destination
   7. Navigate to the 'blackjack-web-app\BlackJack\bin\Release\net9.0' directory (This directory can be renamed and moved to another location if desired)
   8. Launch the 'Blackjack.exe' executable file
-  9. Navigate to 'http://localhost:5000/' in your web browser
+  9. Navigate to http://localhost:5000/ in your web browser
   10. When done, close the terminal where the application is running, or press Ctrl+C to terminate the process
 
 To enable multiplayer:
