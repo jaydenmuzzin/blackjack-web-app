@@ -37,8 +37,7 @@ To use the application:
 To enable multiplayer:
   1. Navigate to the 'Game' page in the running application
   2. Duplicate the browser tab, or navigate to the 'Game' page in any number of additional browser tabs or windows
-  3. Enter a username for the player
-    - Every time a player is registered, their username will appear in each game session (browser tab / window).
+  3. Enter a username for each player in each game session (browser tab / window) (Every time a player is registered, their username will appear in each session)
   4. When all players are ready, press 'Start' to begin, where the player order will be that in which each player was registered
   
 ## Planned features
