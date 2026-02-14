@@ -10,6 +10,8 @@ It is a simulation of the basic form of the game, allowing multiple players to c
 
 Additional features are planned for the future.
 
+PLEASE NOTE: Any player that navigates away from the game once registered will cause the game to fail. Enabling reconnection to the registration lobby and game once disconnected is a planned implementation.
+
 ## License
 Please acknowledge the license of this software outlined in the "LICENSE.md" file located in the root of this repository.
 
