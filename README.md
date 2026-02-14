@@ -23,18 +23,18 @@ I have also included the Visual Studio solution file (.sln) in this repository w
 ## Using the application
 To use the application:
   1. Install the latest .NET 9.0 version on your machine, which can be obtained [here](https://dotnet.microsoft.com/en-us/download/dotnet/9.0) (Windows users should only need the ASP.NET Core Runtime. MacOS users will need the SDK which includes the ASP.NET Core Runtime.)
-  2. Ensure the active branch of this repository is 'master'
-  3. Click the 'Clone or download' dropdown
+  2. Ensure the active branch of this repository is 'main'
+  3. Click the 'Code' dropdown
   4. Click 'Download ZIP'
   5. Download the repo to your chosen destination
   6. Extract the contents of the file to your chosen destination
-  7. Navigate to the 'blackjack-web-app\BlackJack\bin\Release\net9.0' directory (This directory can be renamed and moved to another location if desired)
-  8. Launch the 'Blackjack.exe' executable file
+  7. Navigate to the 'blackjack-web-app-main\Blackjack\bin\Release\net9.0' directory (This directory can be renamed and moved to another location if desired)
+  8. (Scanning the file first is always a best practice before running an unknown and untrusted application, then...) Launch the 'Blackjack.exe' executable file and allow its execution
   9. Navigate to http://localhost:5000/ in your web browser
   10. When done, close the terminal where the application is running, or press Ctrl+C to terminate the process
 
 To enable multiplayer:
-  1. Navigate to the 'Game' page in the running application
+  1. Navigate to the 'Game' page in the running application, accessable from pressing the 'Play' button on the homepage
   2. Duplicate the browser tab, or navigate to the 'Game' page in any number of additional browser tabs or windows
   3. Enter a username for each player in each game session (browser tab / window) (Every time a player is registered, their username will appear in each session)
   4. When all players are ready, press 'Start' to begin, where the player order will be that in which each player was registered
