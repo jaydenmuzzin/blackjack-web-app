@@ -68,9 +68,39 @@ namespace Blackjack {
             await BeginNextTurn();
         }
 
-        public override Task OnDisconnectedAsync(Exception? e)
+        public override async Task OnDisconnectedAsync(Exception? e)
         {
-            return base.OnDisconnectedAsync(e);
+            GamePlayer? dcgp = GamePlayers.FirstOrDefault(x => x.Value.ConnectionId == Context.ConnectionId).Value;
+
+            if (dcgp is not null)
+            {
+                Console.WriteLine($"Player {dcgp.Username} disconnected. Awaiting reconnection...");
+
+                await Task.Delay(30000).ContinueWith(async t => {
+                    GamePlayer? gp = GamePlayers.FirstOrDefault(x => x.Value.Username == dcgp.Username).Value;
+
+                    if (gp is not null)
+                    {
+                        if (gp.ConnectionId == Context.ConnectionId)
+                        {   
+                            Console.WriteLine($"Player {dcgp.Username} did not reconnect and is set to be removed from the game");
+                            await RemovePlayer(dcgp.Username);
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Player {dcgp.Username} was reconnected and will remain in the game");
+                        }
+                    }
+                });
+            }
+
+            await base.OnDisconnectedAsync(e);
+        }
+
+        public async Task RemovePlayer(string username)
+        {
+            Console.WriteLine($"Removing player {username}");
+            await Clients.All.SendAsync("ReceiveLogMessage", $"Player {username} left the game.");
         }
 
         public async void RegisterPlayer(string username)
