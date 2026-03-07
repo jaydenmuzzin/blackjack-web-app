@@ -212,7 +212,7 @@ namespace Blackjack {
 
                     foreach (KeyValuePair<string, GamePlayer> kvp in GamePlayers)
                     {
-                        await Clients.Client(kvp.Value.ConnectionId).SendAsync("GameStart", kvp.Value.Username, id.numRounds, Utilities.Serialize(id.Dealer), Utilities.Serialize(id.Players[kvp.Value.Position - 1]));
+                        await Clients.Client(kvp.Value.ConnectionId).SendAsync("GameStart", kvp.Value.Username, kvp.Value.ConnectionId, id.numRounds, Utilities.Serialize(id.Dealer), Utilities.Serialize(id.Players[kvp.Value.Position - 1]));
                     }
 
                     await Clients.All.SendAsync("ReceiveLogMessage", "Game started!");

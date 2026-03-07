@@ -53,8 +53,11 @@ CONN.on("AnotherPlayerRegistered", (REG_USERNAME, canRegisterAnother) => {
     })();
 });
 
-CONN.on("GameStart", (USERNAME, NUM_ROUNDS, dJsonStr, pJsonStr) => {
+CONN.on("GameStart", (USERNAME, CONN_ID, NUM_ROUNDS, dJsonStr, pJsonStr) => {
     username = USERNAME;
+
+    sessionStorage.setItem("playerUsername", USERNAME);
+    sessionStorage.setItem("playerConnId", CONN_ID);
     loadGame(NUM_ROUNDS, JSON.parse(dJsonStr), JSON.parse(pJsonStr));
 });
 
