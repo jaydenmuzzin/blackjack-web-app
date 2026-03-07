@@ -2,7 +2,29 @@ const CONN = new signalR.HubConnectionBuilder()
     .withUrl("/gameHub")
     .withAutomaticReconnect()
     .withStatefulReconnect()
+    .configureLogging(signalR.LogLevel.Information)
     .build();
+
+CONN.onclose((error) => {
+    console.assert(CONN.state === signalR.HubConnectionState.Disconnected);
+    console.error(
+        error == undefined
+            ? "Connection to hub was closed and reconnection failed. This may be due to a server error or shutdown."
+            : `Connection to hub was closed and reconnection failed. The following error occurred: ${error}`,
+    );
+});
+
+CONN.onreconnecting(() => {
+    console.assert(CONN.state === signalR.HubConnectionState.Reconnecting);
+    console.log("Reconnecting to hub...");
+});
+
+CONN.onreconnected((CONN_ID) => {
+    console.assert(CONN.state === signalR.HubConnectionState.Connected);
+    console.log(
+        `Connection to hub reestablished. Reconnected with connection id: '${CONN_ID}'`,
+    );
+});
 
 CONN.on("PlayerNotRegistered", (REASON) => playerNotRegistered(REASON));
 
@@ -106,15 +128,15 @@ CONN.on("PromptNextRound", () => {
 });
 
 CONN.on("NewRound", (NUM_ROUNDS, dJsonStr, pJsonStr) =>
-    newRound(NUM_ROUNDS, JSON.parse(dJsonStr), JSON.parse(pJsonStr))
+    newRound(NUM_ROUNDS, JSON.parse(dJsonStr), JSON.parse(pJsonStr)),
 );
 
 CONN.on("ReceiveLogMessage", (MSG, ACTION, RECORD, OTHER, SETTING_CHANGE) =>
-    generateLogMessage(MSG, ACTION, RECORD, OTHER, SETTING_CHANGE)
+    generateLogMessage(MSG, ACTION, RECORD, OTHER, SETTING_CHANGE),
 );
 
 CONN.on("ReceiveChatMessage", (SENDER, MSG, RECEIVER) =>
-    generateChatMessage(SENDER, MSG, RECEIVER)
+    generateChatMessage(SENDER, MSG, RECEIVER),
 );
 
 CONN.on("Error", (MSG) => {
