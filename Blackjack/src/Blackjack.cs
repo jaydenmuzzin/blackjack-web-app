@@ -121,5 +121,10 @@ namespace Blackjack
         {
             return Players[playerNum];
         }
+
+        public static Dealer GetDealer()
+        {
+            return Dealer;
+        }
     }
 }
