@@ -2,15 +2,17 @@
 
 // Onload
 
-window.onload = () => {
-        addInputSanitiser("player-1");
-        document
-            .getElementById("add-player-btn")
-            .addEventListener("click", registerPlayer);
+function enableRegistration() {
+    addInputSanitiser("player-1");
+    document
+        .getElementById("add-player-btn")
+        .addEventListener("click", registerPlayer);
+}
 
+function initialiseGame() {
     initialiseSettings();
     initialiseChat();
-};
+}
 
 // ------------------------------------------------------------
 
@@ -263,6 +265,8 @@ observer.observe($("main").get(0), {
 $(window).resize(updateView);
 
 async function loadGame(NUM_ROUNDS, DEALER, PLAYER) {
+    console.log("Loading game...");
+
     document.querySelector("footer").classList.add("game-footer");
 
     document.getElementById("intro").remove();
@@ -344,6 +348,8 @@ async function loadGame(NUM_ROUNDS, DEALER, PLAYER) {
     document.getElementById("username").textContent = `${username}`;
 
     document.getElementById("game-container").classList.remove("d-none");
+    
+    console.log("Game loaded");
 }
 
 function setSymbol(SUITE) {

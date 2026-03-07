@@ -103,6 +103,36 @@ namespace Blackjack {
             await Clients.All.SendAsync("ReceiveLogMessage", $"Player {username} left the game.");
         }
 
+        public async void ReconnectPlayer(string username, string connectionId)
+        {
+            if (string.IsNullOrWhiteSpace(username))
+            {
+                throw new ArgumentException("Null or blank username will not correspond to a player intended for reconnection. Empty session storage username item may have been sent.");
+            }
+            else
+            {
+                GamePlayer? rcgp = GamePlayers.FirstOrDefault(x => x.Value.Username == username && x.Value.ConnectionId == connectionId).Value;
+
+                if (rcgp is not null)
+                {
+                    rcgp.SetConnectionId(Context.ConnectionId);
+                    Console.WriteLine($"Player {rcgp.Username} reconnected with connection ID: {Context.ConnectionId}");
+                    await Clients.Caller.SendAsync("GameReload", rcgp.ConnectionId, 1, Utilities.Serialize(Task.FromResult(Game.GetDealer()).Result), Utilities.Serialize(Task.FromResult(Game.GetPlayer(rcgp.Position - 1)).Result));
+                }
+                else
+                {
+                    if (GamePlayers.IsEmpty)
+                    {
+                        await Clients.Caller.SendAsync("Error", $"Unable to reconnect player {username} as game no longer exists.");
+                    }
+                    else
+                    {
+                        await Clients.Caller.SendAsync("Error", $"Player with username {username} does not exist in game. Unable to reconnect player."); 
+                    }
+                }
+            }
+        }
+
         public async void RegisterPlayer(string username)
         {
             try

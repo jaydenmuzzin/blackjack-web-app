@@ -24,6 +24,8 @@ CONN.onreconnected((CONN_ID) => {
     console.log(
         `Connection to hub reestablished. Reconnected with connection id: '${CONN_ID}'`,
     );
+
+    handlePossibleDisconnectedPlayer();
 });
 
 CONN.on("PlayerNotRegistered", (REASON) => playerNotRegistered(REASON));
@@ -58,6 +60,11 @@ CONN.on("GameStart", (USERNAME, CONN_ID, NUM_ROUNDS, dJsonStr, pJsonStr) => {
 
     sessionStorage.setItem("playerUsername", USERNAME);
     sessionStorage.setItem("playerConnId", CONN_ID);
+    loadGame(NUM_ROUNDS, JSON.parse(dJsonStr), JSON.parse(pJsonStr));
+});
+
+CONN.on("GameReload", (NEW_CONN_ID, NUM_ROUNDS, dJsonStr, pJsonStr) => {
+    sessionStorage.setItem("playerConnId", NEW_CONN_ID);
     loadGame(NUM_ROUNDS, JSON.parse(dJsonStr), JSON.parse(pJsonStr));
 });
 
@@ -178,7 +185,33 @@ async function startHubConnection() {
     }
 }
 
-startHubConnection();
+async function reconnectPlayer(USERNAME, OLD_CONN_ID) {
+    try {
+        console.log("Reconnecting to game...");
+        await CONN.invoke("ReconnectPlayer", USERNAME, OLD_CONN_ID);
+    } catch (error) {
+        console.error(
+            `Unable to be reconnected to game due to error: ${error}`,
+        );
+    }
+}
+
+async function handlePossibleDisconnectedPlayer() {
+    const USERNAME = sessionStorage.getItem("playerUsername");
+    const OLD_CONN_ID = sessionStorage.getItem("playerConnId");
+
+    if (USERNAME != null && OLD_CONN_ID != null) {
+        await reconnectPlayer(USERNAME, OLD_CONN_ID);
+    } else {
+        enableRegistration();
+    }
+}
+
+window.addEventListener("load", async () => {
+    await startHubConnection();
+    initialiseGame();
+    await handlePossibleDisconnectedPlayer();
+});
 
 document
     .getElementById("players-form")
