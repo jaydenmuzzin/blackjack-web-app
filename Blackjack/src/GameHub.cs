@@ -68,11 +68,6 @@ namespace Blackjack {
             await BeginNextTurn();
         }
 
-        // public override Task OnConnectedAsync()
-        // {
-        //     return base.OnConnectedAsync();
-        // }
-
         public override Task OnDisconnectedAsync(Exception? e)
         {
             RegisteredPlayers.Clear();
