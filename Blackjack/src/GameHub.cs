@@ -70,14 +70,6 @@ namespace Blackjack {
 
         public override Task OnDisconnectedAsync(Exception? e)
         {
-            RegisteredPlayers.Clear();
-            GamePlayers.Clear();
-            playerNumber = 1;
-            playerTurn = 0;
-            posOfBlackJacks.Clear();
-            playerBusts = 0;
-            dealerBlackjack = false;
-
             return base.OnDisconnectedAsync(e);
         }
 
