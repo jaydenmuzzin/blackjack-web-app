@@ -132,7 +132,28 @@ CONN.on("Error", (MSG) => {
     console.error(MSG);
 });
 
-CONN.start();
+async function startHubConnection() {
+    try {
+        let timeElapsed = 0;
+
+        console.log("Connecting to hub...");
+        CONN.start();
+        while (CONN.state !== signalR.HubConnectionState.Connected) {
+            await sleep(500);
+            timeElapsed += 500;
+
+            if (timeElapsed >= 30000) {
+                throw "Failed to connect to hub. Reattempting...";
+            }
+        }
+        console.log("Connected to hub");
+    } catch (error) {
+        console.error(error);
+        startHubConnection();
+    }
+}
+
+startHubConnection();
 
 document
     .getElementById("players-form")
