@@ -5,7 +5,7 @@ namespace Blackjack
     {
         public int Position { get; } = position;
         public string Username { get; } = username;
-        public string ConnectionId { get; } = connectionId;
+        public string ConnectionId { get; private set; } = connectionId;
         public bool ActionLogMsgsEnabled { get; private set; } = true;
         public bool DealerRecordLogMsgsEnabled { get; private set; } = true;
         public bool DealerRecordPerRound { get; private set; } = true;
@@ -13,6 +13,11 @@ namespace Blackjack
         public bool OthersRecordsLogMsgsEnabled { get; private set; } = true;
 
         public override string ToString() => $"Position: {Position}, Username: {Username}, ConnectionId: {ConnectionId}";
+
+        internal void SetConnectionId(string connectionId)
+        {
+            ConnectionId = connectionId;
+        }
 
         internal void SetActionLogMsgsEnabled(bool enabled)
         {
