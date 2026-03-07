@@ -3,10 +3,10 @@
 // Onload
 
 window.onload = () => {
-    addInputSanitiser("player-1");
-    document
-        .getElementById("add-player-btn")
-        .addEventListener("click", registerPlayer);
+        addInputSanitiser("player-1");
+        document
+            .getElementById("add-player-btn")
+            .addEventListener("click", registerPlayer);
 
     initialiseSettings();
     initialiseChat();
@@ -15,16 +15,6 @@ window.onload = () => {
 // ------------------------------------------------------------
 
 // Pregame
-
-function sanitiseInputs(e) {
-    e.target.value = e.target.value.replace(/[^A-Za-z\s\d]/gi, "");
-}
-
-function addInputSanitiser(playerUsernameId) {
-    document
-        .getElementById(playerUsernameId)
-        .addEventListener("input", sanitiseInputs);
-}
 
 function createPotentialPlayerElement(LAST_ADD_PLAYER_EL) {
     let potentialPlayerEl = LAST_ADD_PLAYER_EL.cloneNode(true);
@@ -221,23 +211,6 @@ function displayLimitReachedMsg() {
         "Maximum players registered. You will be a watcher when the game starts.<br><br>Please reload if you would like to play.";
 
     document.getElementById("intro").appendChild(playerLimitReachedMsgEl);
-}
-
-// ------------------------------------------------------------
-
-// Utilities
-
-function timeout(ms) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-async function sleep(ms = 1500) {
-    await delay(() => void 0, ms);
-}
-
-async function delay(fn, ms = 1500, ...args) {
-    await timeout(ms);
-    return fn(...args);
 }
 
 // ------------------------------------------------------------
