@@ -343,7 +343,7 @@ async function loadGame(NUM_ROUNDS, DEALER, PLAYER) {
     });
 
     constructPlayerHand("player-hand", PLAYER.Hand);
-    initialiseRound(NUM_ROUNDS, PLAYER, DEALER);
+    setRoundState(NUM_ROUNDS, PLAYER, DEALER);
 
     document.getElementById("username").textContent = `${username}`;
 
@@ -422,7 +422,10 @@ async function dealersTurn(DEALER) {
 
     await sleep();
 
-    document.getElementById("hole").remove();
+    const HOLE_CARD = document.getElementById("hole");
+    if (HOLE_CARD != null) {
+        HOLE_CARD.remove();
+    }
 
     await dealDealer(DEALER.Hand).then(async () => {
         if (DEALER.HandValue > 21) {
@@ -467,7 +470,7 @@ async function newRound(NUM_ROUNDS, DEALER, PLAYER) {
         .querySelectorAll(".card-status")
         .forEach((el) => (el.textContent = ""));
 
-    initialiseRound(NUM_ROUNDS, PLAYER, DEALER);
+    setRoundState(NUM_ROUNDS, PLAYER, DEALER);
 }
 
 function generateCard(CARD) {
@@ -566,16 +569,19 @@ async function generateNextRoundBtn() {
     }
 }
 
-function generateInitialPlayerHand(PLAYER_HAND_EL_ID, PLAYER_HAND) {
+function generatePlayerHand(PLAYER_HAND_EL_ID, PLAYER_HAND) {
     let playerCardsEl = document
         .getElementById(PLAYER_HAND_EL_ID)
         .getElementsByClassName("cards")[0];
-    playerCardsEl.appendChild(generateCard(PLAYER_HAND[0]));
-    playerCardsEl.appendChild(generateCard(PLAYER_HAND[1]));
+
+    for (let i = 0; i < PLAYER_HAND.length; i++) {
+        playerCardsEl.appendChild(generateCard(PLAYER_HAND[i]));
+    }
+    
     return playerCardsEl;
 }
 
-function generateInitialDealerHand(DEALER) {
+function generateDealerHand(DEALER) {
     let dealerCardsEl = document
         .getElementById("dealer-hand")
         .getElementsByClassName("cards")[0];
@@ -590,7 +596,13 @@ function generateInitialDealerHand(DEALER) {
             .getElementsByClassName("card-status")[0].textContent =
             "Blackjack!";
     } else {
-        dealerCardsEl.appendChild(generateHoleCard());
+        if (DEALER.Hand.length > 1) {
+            for (let i = 1; i < DEALER.Hand.length; i++) {
+                dealerCardsEl.appendChild(generateCard(DEALER.Hand[i]));
+            }
+        } else {
+            dealerCardsEl.appendChild(generateHoleCard());
+        }
     }
 }
 
@@ -606,13 +618,13 @@ function generateHoleCard() {
     return holeCardEl;
 }
 
-function initialiseRound(NUM_ROUNDS, PLAYER, DEALER) {
+function setRoundState(NUM_ROUNDS, PLAYER, DEALER) {
     document.getElementById("round-num").textContent = `${NUM_ROUNDS}`;
 
     checkBlackjack(PLAYER);
 
-    generateInitialDealerHand(DEALER);
-    generateInitialPlayerHand("player-hand", PLAYER.Hand);
+    generateDealerHand(DEALER);
+    generatePlayerHand("player-hand", PLAYER.Hand);
 }
 
 // ------------------------------------------------------------
