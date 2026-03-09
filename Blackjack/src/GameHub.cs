@@ -117,7 +117,7 @@ namespace Blackjack {
                 {
                     rcgp.SetConnectionId(Context.ConnectionId);
                     Console.WriteLine($"Player {rcgp.Username} reconnected with connection ID: {Context.ConnectionId}");
-                    await Clients.Caller.SendAsync("GameReload", rcgp.ConnectionId, 1, Utilities.Serialize(Task.FromResult(Game.GetDealer()).Result), Utilities.Serialize(Task.FromResult(Game.GetPlayer(rcgp.Position - 1)).Result));
+                    await Clients.Caller.SendAsync("GameReload", rcgp.Username, rcgp.ConnectionId, 1, Utilities.Serialize(Task.FromResult(Game.GetDealer()).Result), Utilities.Serialize(Task.FromResult(Game.GetPlayer(rcgp.Position - 1)).Result));
                 }
                 else
                 {

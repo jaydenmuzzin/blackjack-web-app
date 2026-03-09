@@ -63,7 +63,9 @@ CONN.on("GameStart", (USERNAME, CONN_ID, NUM_ROUNDS, dJsonStr, pJsonStr) => {
     loadGame(NUM_ROUNDS, JSON.parse(dJsonStr), JSON.parse(pJsonStr));
 });
 
-CONN.on("GameReload", (NEW_CONN_ID, NUM_ROUNDS, dJsonStr, pJsonStr) => {
+CONN.on("GameReload", (USERNAME, NEW_CONN_ID, NUM_ROUNDS, dJsonStr, pJsonStr) => {
+    username = USERNAME;
+
     sessionStorage.setItem("playerConnId", NEW_CONN_ID);
     loadGame(NUM_ROUNDS, JSON.parse(dJsonStr), JSON.parse(pJsonStr));
 });
