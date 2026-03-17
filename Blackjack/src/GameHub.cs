@@ -10,12 +10,16 @@ namespace Blackjack {
     {
         private static readonly ConcurrentDictionary<string, RegPlayer> RegisteredPlayers = new();
         private static readonly ConcurrentDictionary<string, GamePlayer> GamePlayers = new();
+        private static Dictionary<string, Record> results = [];
+        private static Dictionary<string, Record?> dealerRecordLogs = [];
         private static readonly int playerLimit = 5;
         private static int playerNumber = 1;
         private static int playerTurn = 0;
         private static readonly List<int> posOfBlackJacks = [];
         private static int playerBusts = 0;
         private static bool dealerBlackjack = false;
+        private static bool resultsTaskExecuted = false;
+        private static bool roundEnded = false;
 
         private static GamePlayer GetTurnPlayer()
         {   
@@ -118,6 +122,66 @@ namespace Blackjack {
                     rcgp.SetConnectionId(Context.ConnectionId);
                     Console.WriteLine($"Player {rcgp.Username} reconnected with connection ID: {Context.ConnectionId}");
                     await Clients.Caller.SendAsync("GameReload", rcgp.Username, rcgp.ConnectionId, 1, Utilities.Serialize(Task.FromResult(Game.GetDealer()).Result), Utilities.Serialize(Task.FromResult(Game.GetPlayer(rcgp.Position - 1)).Result));
+
+                    if (roundEnded)
+                    {
+                        await Clients.Caller.SendAsync("ReceiveLogMessage", "Round ended!");
+
+                        results.TryGetValue($"Player{rcgp.Position-1}", out Record? rcgpRecord);
+                        await SendLogMessage(rcgp, "You|" + Utilities.Serialize(rcgpRecord), false, true);
+                        await Clients.Caller.SendAsync("Results", Utilities.Serialize(rcgpRecord), 0);
+
+                        if (rcgp.DealerRecordLogMsgsEnabled)
+                        {
+                            results.TryGetValue($"{(rcgp.DealerRecordPerRound ? "DealerPerRound" : $"DealerPerPlayer{rcgp.Position-1}")}", out Record? dRecord);
+                            await SendLogMessage(rcgp, $"Dealer|" + Utilities.Serialize(dRecord), false, true, false, false, true);
+                        }
+
+                        GamePlayers.TryGetValue(GamePlayers.Count.ToString(), out GamePlayer? lastPlayerOfRound);
+                        if (lastPlayerOfRound is not null)
+                        {
+                            if (lastPlayerOfRound.ConnectionId == rcgp.ConnectionId)
+                            {
+                                await Clients.Client(lastPlayerOfRound.ConnectionId).SendAsync("PromptNextRound");
+                            }
+                        }
+                        else
+                        {
+                            throw new NullReferenceException("Last player of round failed to be retrieved to send them prompting of the next round");
+                        }
+                    }
+                    else
+                    {
+                        if (playerTurn == 0)
+                        {
+                            await Clients.Caller.SendAsync("DealerTurn", Utilities.Serialize(Task.FromResult(Game.GetDealer()).Result), false, !resultsTaskExecuted);
+
+                            if (resultsTaskExecuted)
+                            {
+                                results.TryGetValue($"Player{rcgp.Position-1}", out Record? rcgpRecord);
+                                await Clients.Caller.SendAsync("Results", Utilities.Serialize(rcgpRecord));
+
+                                if (rcgp.DealerRecordLogMsgsEnabled)
+                                {
+                                    results.TryGetValue($"{(rcgp.DealerRecordPerRound ? "DealerPerRound" : $"DealerPerPlayer{rcgp.Position-1}")}", out Record? dRecord);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            GamePlayer tp = GetTurnPlayer();
+                            if (tp.ConnectionId == rcgp.ConnectionId)
+                            {
+                                await Clients.Caller.SendAsync("Turn");
+                                await SendLogMessage(rcgp, "Your turn!", true);
+                            }
+                            else
+                            {
+                                await Clients.Caller.SendAsync("Another's Turn", $"{tp.Username}");
+                                await SendLogMessage(rcgp, $"{tp.Username}'s turn!", false , false, true);
+                            }
+                        }
+                    }
                 }
                 else
                 {
@@ -350,11 +414,10 @@ namespace Blackjack {
         {
             try
             {
+                playerTurn = 0;
                 bool perform = !dealerBlackjack && posOfBlackJacks.Count + playerBusts < GamePlayers.Count;
 
-                playerTurn = GamePlayers.Count;
-
-                await Clients.All.SendAsync("DealerTurn", Utilities.Serialize(perform ? Task.FromResult(Game.DealerTurn()).Result : null), perform);
+                await Clients.All.SendAsync("DealerTurn", Utilities.Serialize(perform ? Task.FromResult(Game.DealerTurn()).Result : null), perform, true);
 
                 if (perform)
                 {
@@ -378,90 +441,103 @@ namespace Blackjack {
         {
             try
             {
-                if (Context.ConnectionId == GetTurnPlayer().ConnectionId)
+                GamePlayers.TryGetValue(GamePlayers.Count.ToString(), out GamePlayer? lastPlayerOfRound);
+
+                if (lastPlayerOfRound is not null)
                 {
-                    Dictionary<string, Record> results = Task.FromResult(Game.DetermineResults()).Result;
-                    Dictionary<string, Record?> dealerRecordLogs = [];
-
-                    Console.WriteLine("Results determined\n");
-
-                    for (int i = 1; i <= GamePlayers.Count; i++)
+                    if (Context.ConnectionId == lastPlayerOfRound.ConnectionId)
                     {
-                        GamePlayers.TryGetValue(i.ToString(), out GamePlayer? gp);
+                        resultsTaskExecuted = true;
+                        
+                        results = Task.FromResult(Game.DetermineResults()).Result;
+                        dealerRecordLogs = [];
 
-                        if (gp is not null)
+                        Console.WriteLine("Results determined\n");
+
+                        for (int i = 1; i <= GamePlayers.Count; i++)
                         {
-                            results.TryGetValue($"{(gp.DealerRecordPerRound ? "DealerPerRound" : $"DealerPerPlayer{i-1}")}", out Record? dr);
-                            dealerRecordLogs.Add(gp.ConnectionId, dr);
+                            GamePlayers.TryGetValue(i.ToString(), out GamePlayer? gp);
 
-                            results.TryGetValue($"Player{i-1}", out Record? pRecord);
-
-                            await Clients.Client(gp.ConnectionId).SendAsync("Results", Utilities.Serialize(pRecord));
-                        }
-                        else
-                        {
-                            throw new NullReferenceException($"Player in position {i} failed to be retrieved to send them their statistics for displaying");
-                        }
-                    }
-
-                    await Task.Delay(2500);
-
-                    for (int j = 1; j <= GamePlayers.Count; j++)
-                    {
-                        results.TryGetValue($"Player{j-1}", out Record? s);
-                        GamePlayers.TryGetValue(j.ToString(), out GamePlayer? gp);
-
-                        if (gp is not null)
-                        {
-                            await SendLogMessage(gp, "You|" + Utilities.Serialize(s), false, true);
-                        }
-                        else
-                        {
-                            throw new NullReferenceException($"Player in position {j} failed to be retrieved to send them their record for logging");
-                        }
-                    }
-
-                    for (int k = 1; k <= GamePlayers.Count; k++)
-                    {
-                        results.TryGetValue($"Player{k-1}", out Record? kpr);
-                        GamePlayers.TryGetValue(k.ToString(), out GamePlayer? kgp);
-
-                        if (kgp is not null)
-                        {
-                            for (int l = 1; l <= GamePlayers.Count; l++)
+                            if (gp is not null)
                             {
-                                GamePlayers.TryGetValue(l.ToString(), out GamePlayer? lgp);
-                                
-                                if (l != k)
-                                {
-                                    await SendLogMessage(lgp, $"{kgp.Username}|" + Utilities.Serialize(kpr), false, true, true);
-                                }
+                                results.TryGetValue($"{(gp.DealerRecordPerRound ? "DealerPerRound" : $"DealerPerPlayer{i-1}")}", out Record? dr);
+                                dealerRecordLogs.Add(gp.Username, dr);
+
+                                results.TryGetValue($"Player{i-1}", out Record? pRecord);
+
+                                await Clients.Client(gp.ConnectionId).SendAsync("Results", Utilities.Serialize(pRecord));
+                            }
+                            else
+                            {
+                                throw new NullReferenceException($"Player in position {i} failed to be retrieved to send them their statistics for displaying");
                             }
                         }
-                        else
+
+                        await Task.Delay(2500);
+
+                        for (int j = 1; j <= GamePlayers.Count; j++)
                         {
-                            throw new NullReferenceException($"Player in position {k} failed to be retrieved to send their record to others for logging");
+                            results.TryGetValue($"Player{j-1}", out Record? s);
+                            GamePlayers.TryGetValue(j.ToString(), out GamePlayer? gp);
+
+                            if (gp is not null)
+                            {
+                                await SendLogMessage(gp, "You|" + Utilities.Serialize(s), false, true);
+                            }
+                            else
+                            {
+                                throw new NullReferenceException($"Player in position {j} failed to be retrieved to send them their record for logging");
+                            }
                         }
+
+                        for (int k = 1; k <= GamePlayers.Count; k++)
+                        {
+                            results.TryGetValue($"Player{k-1}", out Record? kpr);
+                            GamePlayers.TryGetValue(k.ToString(), out GamePlayer? kgp);
+
+                            if (kgp is not null)
+                            {
+                                for (int l = 1; l <= GamePlayers.Count; l++)
+                                {
+                                    GamePlayers.TryGetValue(l.ToString(), out GamePlayer? lgp);
+                                    
+                                    if (l != k)
+                                    {
+                                        await SendLogMessage(lgp, $"{kgp.Username}|" + Utilities.Serialize(kpr), false, true, true);
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                throw new NullReferenceException($"Player in position {k} failed to be retrieved to send their record to others for logging");
+                            }
+                        }
+
+                        for (int m = 1; m <= GamePlayers.Count; m++)
+                        {
+                            GamePlayers.TryGetValue(m.ToString(), out GamePlayer? mgp);
+
+                            if (mgp is not null)
+                            {
+                                dealerRecordLogs.TryGetValue(mgp.Username, out Record? dr);
+
+                                await SendLogMessage(mgp, $"Dealer|" + Utilities.Serialize(dr), false, true, false, false, true);
+                            }
+                            else
+                            {
+                                throw new NullReferenceException($"Player in position {m} failed to be retrieved to send them the dealer's record for logging");
+                            }
+                        }
+
+                        await Clients.All.SendAsync("ReceiveLogMessage", "Round ended!");
+                        await Clients.Client(lastPlayerOfRound.ConnectionId).SendAsync("PromptNextRound");
+
+                        roundEnded = true;
                     }
-
-                    for (int m = 1; m <= GamePlayers.Count; m++)
-                    {
-                        GamePlayers.TryGetValue(m.ToString(), out GamePlayer? mgp);
-
-                        if (mgp is not null)
-                        {
-                            dealerRecordLogs.TryGetValue(mgp.ConnectionId, out Record? dr);
-
-                            await SendLogMessage(mgp, $"Dealer|" + Utilities.Serialize(dr), false, true, false, false, true);
-                        }
-                        else
-                        {
-                            throw new NullReferenceException($"Player in position {m} failed to be retrieved to send them the dealer's record for logging");
-                        }
-                    }
-
-                    await Clients.All.SendAsync("ReceiveLogMessage", "Round ended!");
-                    await Clients.Client(GetTurnPlayer().ConnectionId).SendAsync("PromptNextRound");
+                }
+                else
+                {
+                    throw new NullReferenceException("Last player of round failed to be retrieved to send them prompting of the next round");
                 }
             }
             catch (Exception e)
@@ -475,10 +551,12 @@ namespace Blackjack {
         {
             try
             {
+                roundEnded = false;
+                resultsTaskExecuted = false;
                 posOfBlackJacks.Clear();
                 dealerBlackjack = false;
                 playerBusts = 0;
-                playerTurn = 0; // BeginNextTurn sets playerTurn to 1 to perform the first turn of the new round
+                // PerformDealerTurn sets playerTurn to 0 and BeginNextTurn sets playerTurn to 1 to perform the first turn of the new round
 
                 await Task.FromResult(Game.NewRound()).ContinueWith(async tid => {
                     InitialDeal id = tid.Result;

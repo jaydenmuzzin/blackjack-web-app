@@ -413,12 +413,20 @@ async function stand() {
         .getElementsByClassName("card-status")[0].textContent = "You stood";
 }
 
-async function dealersTurn(DEALER) {
+function initialiseDealersTurn() {
+    document.getElementsByClassName("player-actions")[0].innerHTML = "";
+
     let dealerStatusEl = document
         .getElementById("dealer-position")
         .getElementsByClassName("card-status")[0];
 
     dealerStatusEl.textContent = "Dealer's turn";
+
+    return dealerStatusEl;
+}
+
+async function dealersTurn(DEALER) {
+    let dealerStatusEl = initialiseDealersTurn();
 
     await sleep();
 
@@ -436,24 +444,45 @@ async function dealersTurn(DEALER) {
     });
 }
 
-async function displayResults(PLAYER_RECORD) {
-    await delay(() => {
-        document
-            .getElementById("dealer-position")
-            .getElementsByClassName("card-status")[0].textContent =
-            PLAYER_RECORD.DealerRoundResult;
+async function displayDealersTurnState(DEALER) {
+    let dealerStatusEl = initialiseDealersTurn();
 
-        document
-            .getElementById("player-hand")
-            .getElementsByClassName("card-status")[0].textContent =
-            `You ${PLAYER_RECORD.RoundResult.toLowerCase()}${
-                PLAYER_RECORD.RoundResult == "Won"
-                    ? "!"
-                    : PLAYER_RECORD.RoundResult == "Lost"
-                      ? " :("
-                      : ""
-            }`;
-    });
+    const HOLE_CARD = document.getElementById("hole");
+    if (HOLE_CARD != null) {
+        HOLE_CARD.remove();
+    }
+
+    let dealerCardsEl = document
+        .getElementById("dealer-hand")
+        .getElementsByClassName("cards")[0];
+
+    for (let i = dealerCardsEl.childElementCount; i < DEALER.Hand.length; i++) {
+        dealerCardsEl.appendChild(generateCard(DEALER.Hand[i]));
+    }
+
+    if (DEALER.HandValue > 21) {
+        dealerStatusEl.textContent = "BUST!";
+    } else {
+        dealerStatusEl.textContent = "Stands";
+    }
+}
+
+async function displayResults(PLAYER_RECORD) {
+    document
+        .getElementById("dealer-position")
+        .getElementsByClassName("card-status")[0].textContent =
+        PLAYER_RECORD.DealerRoundResult;
+
+    document
+        .getElementById("player-hand")
+        .getElementsByClassName("card-status")[0].textContent =
+        `You ${PLAYER_RECORD.RoundResult.toLowerCase()}${
+            PLAYER_RECORD.RoundResult == "Won"
+                ? "!"
+                : PLAYER_RECORD.RoundResult == "Lost"
+                    ? " :("
+                    : ""
+        }`;
 }
 
 function displayRecord(PLAYER_RECORD) {

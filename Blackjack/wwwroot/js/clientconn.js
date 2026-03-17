@@ -100,27 +100,33 @@ CONN.on("Hit", (pJsonStr) => {
     })();
 });
 
-CONN.on("DealerTurn", (dJsonStr, PERFORM) => {
+CONN.on("DealerTurn", (dJsonStr, PERFORM, INVOKE_DET_RESULTS) => {
     (async () => {
         try {
-            document.getElementsByClassName("player-actions")[0].innerHTML = "";
+            const DEALER = JSON.parse(dJsonStr);
 
             if (PERFORM) {
-                await dealersTurn(JSON.parse(dJsonStr));
+                await dealersTurn(DEALER);
+            } else {
+                if (DEALER && DEALER.Hand.length > 1) {
+                    displayDealersTurnState(DEALER);
+                }
             }
 
-            CONN.invoke("DetermineResults");
+            if (INVOKE_DET_RESULTS) {
+                CONN.invoke("DetermineResults");
+            }
         } catch (err) {
             console.error(err);
         }
     })();
 });
 
-CONN.on("Results", (pJsonStr) => {
+CONN.on("Results", (pJsonStr, MS_DELAY = 1500) => {
     const PLAYER_RECORD = JSON.parse(pJsonStr);
     (async () => {
         try {
-            await displayResults(PLAYER_RECORD);
+            await delay(displayResults, MS_DELAY, PLAYER_RECORD);
             displayRecord(PLAYER_RECORD);
         } catch (err) {
             console.error(err);
