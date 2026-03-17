@@ -117,6 +117,11 @@ namespace Blackjack
             return NewRound();            
         }
 
+        public static int GetNumRounds()
+        {
+            return numRounds;
+        }
+
         public static Player GetPlayer(int playerNum)
         {
             return Players[playerNum];
