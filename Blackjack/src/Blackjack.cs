@@ -37,7 +37,7 @@ namespace Blackjack
                p.CheckBlackjack();
             });        
 
-            return new InitialDeal(numRounds, Dealer, Players);
+            return new InitialDeal(Dealer, Players);
         }
 
         public static Player Hit(int playerNum) {
