@@ -33,7 +33,7 @@ namespace Blackjack {
 
         private async void InitialiseRound(InitialDeal id)
         {
-            await Clients.All.SendAsync("ReceiveLogMessage", $"Round {id.numRounds} begun!");
+            await Clients.All.SendAsync("ReceiveLogMessage", $"Round {Task.FromResult(Game.GetNumRounds()).Result} begun!");
 
             for (int i = 0; i < id.Players.Count; i++)
             {
@@ -121,7 +121,7 @@ namespace Blackjack {
                 {
                     rcgp.SetConnectionId(Context.ConnectionId);
                     Console.WriteLine($"Player {rcgp.Username} reconnected with connection ID: {Context.ConnectionId}");
-                    await Clients.Caller.SendAsync("GameReload", rcgp.Username, rcgp.ConnectionId, 1, Utilities.Serialize(Task.FromResult(Game.GetDealer()).Result), Utilities.Serialize(Task.FromResult(Game.GetPlayer(rcgp.Position - 1)).Result));
+                    await Clients.Caller.SendAsync("GameReload", rcgp.Username, rcgp.ConnectionId, Task.FromResult(Game.GetNumRounds()).Result, Utilities.Serialize(Task.FromResult(Game.GetDealer()).Result), Utilities.Serialize(Task.FromResult(Game.GetPlayer(rcgp.Position - 1)).Result));
 
                     if (roundEnded)
                     {
@@ -306,7 +306,7 @@ namespace Blackjack {
 
                     foreach (KeyValuePair<string, GamePlayer> kvp in GamePlayers)
                     {
-                        await Clients.Client(kvp.Value.ConnectionId).SendAsync("GameStart", kvp.Value.Username, kvp.Value.ConnectionId, id.numRounds, Utilities.Serialize(id.Dealer), Utilities.Serialize(id.Players[kvp.Value.Position - 1]));
+                        await Clients.Client(kvp.Value.ConnectionId).SendAsync("GameStart", kvp.Value.Username, kvp.Value.ConnectionId, Task.FromResult(Game.GetNumRounds()).Result, Utilities.Serialize(id.Dealer), Utilities.Serialize(id.Players[kvp.Value.Position - 1]));
                     }
 
                     await Clients.All.SendAsync("ReceiveLogMessage", "Game started!");
@@ -563,7 +563,7 @@ namespace Blackjack {
                     
                     foreach (KeyValuePair<string, GamePlayer> kvp in GamePlayers)
                     {
-                        await Clients.Client(kvp.Value.ConnectionId).SendAsync("NewRound", id.numRounds, Utilities.Serialize(id.Dealer), Utilities.Serialize(id.Players[kvp.Value.Position - 1]));
+                        await Clients.Client(kvp.Value.ConnectionId).SendAsync("NewRound", Task.FromResult(Game.GetNumRounds()).Result, Utilities.Serialize(id.Dealer), Utilities.Serialize(id.Players[kvp.Value.Position - 1]));
                     }
 
                     InitialiseRound(id);
