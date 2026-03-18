@@ -187,11 +187,20 @@ namespace Blackjack {
                 {
                     if (GamePlayers.IsEmpty)
                     {
-                        await Clients.Caller.SendAsync("Error", $"Unable to reconnect player {username} as game no longer exists.");
+                        await Clients.Caller.SendAsync("Error", $"Unable to reconnect player '{username}' as game no longer exists.");
                     }
                     else
                     {
-                        await Clients.Caller.SendAsync("Error", $"Player with username {username} does not exist in game. Unable to reconnect player."); 
+                        GamePlayer? unauthgp = GamePlayers.FirstOrDefault(x => x.Value.Username == username).Value;
+
+                        if (unauthgp is not null)
+                        {
+                            await Clients.Caller.SendAsync("Error", $"Unable to reconnect player '{username}'."); 
+                        }
+                        else
+                        {
+                            await Clients.Caller.SendAsync("Error", $"Player '{username}' does not exist in game. Unable to reconnect player."); 
+                        }
                     }
                 }
             }
