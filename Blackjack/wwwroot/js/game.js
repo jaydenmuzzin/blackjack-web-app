@@ -399,18 +399,13 @@ async function hit(PLAYER) {
     if (PLAYER.HandValue > 21) {
         document.getElementById("hitBtn").remove();
         document.getElementById("standBtn").remove();
-        document
-            .getElementById("player-hand")
-            .getElementsByClassName("card-status")[0].textContent = "BUST!";
     }
 }
 
-async function stand() {
-    document.getElementById("hitBtn").remove();
-    document.getElementById("standBtn").remove();
+function setTurnStatus(STATUS) {
     document
         .getElementById("player-hand")
-        .getElementsByClassName("card-status")[0].textContent = "You stood";
+        .getElementsByClassName("card-status")[0].textContent = STATUS;
 }
 
 function initialiseDealersTurn() {
@@ -548,15 +543,9 @@ function generateHitStandBtns() {
 
     document.getElementById("standBtn").addEventListener("click", (e) => {
         e.preventDefault();
-        (async () => {
-            try {
-                await stand();
-                CONN.invoke("SendTurnPlayerStatus", "stood");
-                CONN.invoke("BeginNextTurn");
-            } catch (err) {
-                console.error(err);
-            }
-        })();
+        document.getElementById("hitBtn").remove();
+        document.getElementById("standBtn").remove();
+        CONN.invoke("PerformStand");
     });
 }
 

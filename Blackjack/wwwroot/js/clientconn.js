@@ -88,17 +88,13 @@ CONN.on("Hit", (pJsonStr) => {
     (async () => {
         try {
             await hit(PLAYER);
-            await CONN.invoke("SendTurnPlayerStatus", "hit");
-
-            if (PLAYER.HandValue > 21) {
-                CONN.invoke("SendTurnPlayerStatus", "BUST!");
-                CONN.invoke("BeginNextTurn");
-            }
         } catch (err) {
             console.error(err);
         }
     })();
 });
+
+CONN.on("ReceiveTurnStatus", (STATUS) => setTurnStatus(STATUS));
 
 CONN.on("DealerTurn", (dJsonStr, PERFORM, INVOKE_DET_RESULTS) => {
     (async () => {

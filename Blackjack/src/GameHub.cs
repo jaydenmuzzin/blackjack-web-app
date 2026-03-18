@@ -390,22 +390,7 @@ namespace Blackjack {
             }
         }
 
-        public async Task PerformHit()
-        {
-            try
-            {
-                Task<Player> tp = Task.FromResult(Game.Hit(playerTurn - 1));
-
-                await Clients.Caller.SendAsync("Hit", Utilities.Serialize(tp.Result));
-            }
-            catch (Exception e)
-            {
-                await Clients.All.SendAsync("Error", $"Hit failed due to: {e.Message}");
-                throw;
-            }
-        }
-
-        public async Task SendTurnPlayerStatus(string status)
+        public async Task LogTurnPlayerStatus(string status)
         {
             GamePlayer turnPlayer = GetTurnPlayer();
 
@@ -416,6 +401,56 @@ namespace Blackjack {
             {
                 GamePlayers.TryGetValue(i.ToString(), out GamePlayer? gp);
                 await SendLogMessage(gp, $"{(gp == turnPlayer ? "You" : turnPlayer.Username)} {status}", true);
+            }
+        }
+
+        public async Task EndTurn(string status)
+        {
+            try
+            {
+                await LogTurnPlayerStatus(status);
+                await Clients.Caller.SendAsync("ReceiveTurnStatus", $"{(status == "stood" ? "You " : "")}{status}");
+                await BeginNextTurn();
+            }
+            catch (Exception e)
+            {
+                await Clients.All.SendAsync("Error", $"Ending turn failed due to: {e.Message}");
+                throw;
+            }
+        }
+
+        public async Task PerformHit()
+        {
+            try
+            {
+                Player p = Task.FromResult(Game.Hit(playerTurn - 1)).Result;
+
+                await Clients.Caller.SendAsync("Hit", Utilities.Serialize(p));
+                
+                await LogTurnPlayerStatus("hit");
+
+                if (p.HandValue > 21)
+                {
+                    await EndTurn("BUST!");
+                }
+            }
+            catch (Exception e)
+            {
+                await Clients.All.SendAsync("Error", $"Hit failed due to: {e.Message}");
+                throw;
+            }
+        }
+
+        public async Task PerformStand()
+        {
+            try
+            {
+                await EndTurn("stood");
+            }
+            catch (Exception e)
+            {
+                await Clients.All.SendAsync("Error", $"Stand failed due to: {e.Message}");
+                throw;
             }
         }
 
