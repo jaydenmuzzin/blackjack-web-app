@@ -121,7 +121,10 @@ namespace Blackjack {
                 {
                     rcgp.SetConnectionId(Context.ConnectionId);
                     Console.WriteLine($"Player {rcgp.Username} reconnected with connection ID: {Context.ConnectionId}");
-                    await Clients.Caller.SendAsync("GameReload", rcgp.Username, rcgp.ConnectionId, Task.FromResult(Game.GetNumRounds()).Result, Utilities.Serialize(Task.FromResult(Game.GetDealer()).Result), Utilities.Serialize(Task.FromResult(Game.GetPlayer(rcgp.Position - 1)).Result));
+
+                    Player p = Task.FromResult(Game.GetPlayer(rcgp.Position - 1)).Result;
+
+                    await Clients.Caller.SendAsync("GameReload", rcgp.Username, rcgp.ConnectionId, Task.FromResult(Game.GetNumRounds()).Result, Utilities.Serialize(Task.FromResult(Game.GetDealer()).Result), Utilities.Serialize(p));
 
                     if (roundEnded)
                     {
@@ -177,6 +180,13 @@ namespace Blackjack {
                             }
                             else
                             {
+                                if (tp.Position > rcgp.Position)
+                                {
+                                    string turnStatus = p.HandValue > 21 ? "BUST!" : "stood";
+                                    await Clients.Caller.SendAsync("ReceiveTurnStatus", $"{(turnStatus == "stood" ? "You " : "")}{turnStatus}");
+                                    await SendLogMessage(rcgp, $"You {turnStatus}", true);
+                                }
+
                                 await Clients.Caller.SendAsync("Another's Turn", $"{tp.Username}");
                                 await SendLogMessage(rcgp, $"{tp.Username}'s turn!", false , false, true);
                             }
