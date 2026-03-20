@@ -352,6 +352,38 @@ async function loadGame(NUM_ROUNDS, DEALER, PLAYER) {
     console.log("Game loaded");
 }
 
+function restoreSettings(ACTION_LOG_MSGS_ENABLED, DEALER_RECORD_LOG_MSGS_ENABLED, DEALER_RECORD_PER_ROUND, OTHERS_LOG_MSGS_ENABLED, OTHERS_RECORDS_LOG_MSGS_ENABLED) {
+    let dealerRecordPerRoundSettingEl = document.getElementById("per-round");
+    let dealerRecordPerPlayerSettingEl = document.getElementById("per-player");
+    let othersRecordMsgsSettingEl = document.getElementById("others-records-log-msgs-enabled");
+    
+    document.getElementById("action-log-msgs-enabled").checked = ACTION_LOG_MSGS_ENABLED;
+    document.getElementById("dealer-record-log-msgs-enabled").checked = DEALER_RECORD_LOG_MSGS_ENABLED;
+
+    if (!DEALER_RECORD_LOG_MSGS_ENABLED) {
+        dealerRecordPerRoundSettingEl.setAttribute("disabled", true);
+        dealerRecordPerPlayerSettingEl.setAttribute("disabled", true);
+    }
+
+    dealerRecordPerRoundSettingEl.checked = DEALER_RECORD_PER_ROUND;
+    dealerRecordPerPlayerSettingEl.checked = !DEALER_RECORD_PER_ROUND;
+
+    document.getElementById("others-log-msgs-enabled").checked = OTHERS_LOG_MSGS_ENABLED;
+
+    if (!OTHERS_LOG_MSGS_ENABLED) {
+        othersRecordMsgsSettingEl.setAttribute("disabled", true);
+    }
+
+    othersRecordMsgsSettingEl.checked = OTHERS_RECORDS_LOG_MSGS_ENABLED;
+
+    if (sessionStorage.getItem("chat") == "off") {
+        document.getElementById("chat-enabled").checked = false;
+        processEnabledChatSetting("off");
+    }
+
+    existingFormData = new FormData(document.getElementById("settings-form"));
+}
+
 function setSymbol(SUITE) {
     switch (SUITE.Symbol) {
         case "Club":
@@ -731,6 +763,8 @@ function processEnabledChatSetting(SETTING) {
     let logTabBtnEl = document.getElementById("log-tab");
 
     if (SETTING == "on") {
+        sessionStorage.setItem("chat", "on");
+
         if (chatEl.innerHTML == "") {
             chatEl.innerHTML = preservedChat;
             initialiseChat();
@@ -740,6 +774,8 @@ function processEnabledChatSetting(SETTING) {
             preservedChat = chatEl.innerHTML;
         }
     } else {
+        sessionStorage.setItem("chat", "off");
+
         chatTabEl.classList.add("d-none");
         logTabBtnEl.click();
         logTabBtnEl.classList.add("single-tab-btn");

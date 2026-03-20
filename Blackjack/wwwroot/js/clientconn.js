@@ -63,11 +63,12 @@ CONN.on("GameStart", (USERNAME, CONN_ID, NUM_ROUNDS, dJsonStr, pJsonStr) => {
     loadGame(NUM_ROUNDS, JSON.parse(dJsonStr), JSON.parse(pJsonStr));
 });
 
-CONN.on("GameReload", (USERNAME, NEW_CONN_ID, NUM_ROUNDS, dJsonStr, pJsonStr) => {
+CONN.on("GameReload", (USERNAME, NEW_CONN_ID, NUM_ROUNDS, dJsonStr, pJsonStr, ACTION_LOG_MSGS_ENABLED, DEALER_RECORD_LOG_MSGS_ENABLED, DEALER_RECORD_PER_ROUND, OTHERS_LOG_MSGS_ENABLED, OTHERS_RECORDS_LOG_MSGS_ENABLED) => {
     username = USERNAME;
 
     sessionStorage.setItem("playerConnId", NEW_CONN_ID);
     loadGame(NUM_ROUNDS, JSON.parse(dJsonStr), JSON.parse(pJsonStr));
+    restoreSettings(ACTION_LOG_MSGS_ENABLED, DEALER_RECORD_LOG_MSGS_ENABLED, DEALER_RECORD_PER_ROUND, OTHERS_LOG_MSGS_ENABLED, OTHERS_RECORDS_LOG_MSGS_ENABLED);
 });
 
 CONN.on("Turn", () => turn());

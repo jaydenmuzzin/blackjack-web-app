@@ -124,7 +124,7 @@ namespace Blackjack {
 
                     Player p = Task.FromResult(Game.GetPlayer(rcgp.Position - 1)).Result;
 
-                    await Clients.Caller.SendAsync("GameReload", rcgp.Username, rcgp.ConnectionId, Task.FromResult(Game.GetNumRounds()).Result, Utilities.Serialize(Task.FromResult(Game.GetDealer()).Result), Utilities.Serialize(p));
+                    await Clients.Caller.SendAsync("GameReload", rcgp.Username, rcgp.ConnectionId, Task.FromResult(Game.GetNumRounds()).Result, Utilities.Serialize(Task.FromResult(Game.GetDealer()).Result), Utilities.Serialize(p), rcgp.ActionLogMsgsEnabled, rcgp.DealerRecordLogMsgsEnabled, rcgp.DealerRecordPerRound, rcgp.OthersLogMsgsEnabled, rcgp.OthersRecordsLogMsgsEnabled);
 
                     if (roundEnded)
                     {
