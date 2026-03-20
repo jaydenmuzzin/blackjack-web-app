@@ -352,29 +352,29 @@ async function loadGame(NUM_ROUNDS, DEALER, PLAYER) {
     console.log("Game loaded");
 }
 
-function restoreSettings(ACTION_LOG_MSGS_ENABLED, DEALER_RECORD_LOG_MSGS_ENABLED, DEALER_RECORD_PER_ROUND, OTHERS_LOG_MSGS_ENABLED, OTHERS_RECORDS_LOG_MSGS_ENABLED) {
+function restoreSettings(PLAYER) {
     let dealerRecordPerRoundSettingEl = document.getElementById("per-round");
     let dealerRecordPerPlayerSettingEl = document.getElementById("per-player");
     let othersRecordMsgsSettingEl = document.getElementById("others-records-log-msgs-enabled");
     
-    document.getElementById("action-log-msgs-enabled").checked = ACTION_LOG_MSGS_ENABLED;
-    document.getElementById("dealer-record-log-msgs-enabled").checked = DEALER_RECORD_LOG_MSGS_ENABLED;
+    document.getElementById("action-log-msgs-enabled").checked = PLAYER.ActionLogMsgsEnabled;
+    document.getElementById("dealer-record-log-msgs-enabled").checked = PLAYER.DealerRecordLogMsgsEnabled;
 
-    if (!DEALER_RECORD_LOG_MSGS_ENABLED) {
+    if (!PLAYER.DealerRecordLogMsgsEnabled) {
         dealerRecordPerRoundSettingEl.setAttribute("disabled", true);
         dealerRecordPerPlayerSettingEl.setAttribute("disabled", true);
     }
 
-    dealerRecordPerRoundSettingEl.checked = DEALER_RECORD_PER_ROUND;
-    dealerRecordPerPlayerSettingEl.checked = !DEALER_RECORD_PER_ROUND;
+    dealerRecordPerRoundSettingEl.checked = PLAYER.DealerRecordPerRound;
+    dealerRecordPerPlayerSettingEl.checked = !PLAYER.DealerRecordPerRound;
 
-    document.getElementById("others-log-msgs-enabled").checked = OTHERS_LOG_MSGS_ENABLED;
+    document.getElementById("others-log-msgs-enabled").checked = PLAYER.OthersLogMsgsEnabled;
 
-    if (!OTHERS_LOG_MSGS_ENABLED) {
+    if (!PLAYER.OthersLogMsgsEnabled) {
         othersRecordMsgsSettingEl.setAttribute("disabled", true);
     }
 
-    othersRecordMsgsSettingEl.checked = OTHERS_RECORDS_LOG_MSGS_ENABLED;
+    othersRecordMsgsSettingEl.checked = PLAYER.OthersRecordsLogMsgsEnabled;
 
     if (sessionStorage.getItem("chat") == "off") {
         document.getElementById("chat-enabled").checked = false;
