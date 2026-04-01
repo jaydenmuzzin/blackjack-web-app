@@ -1,4 +1,4 @@
 namespace Blackjack
 {
-    public record InitialDeal(int numRounds, Dealer Dealer, List<Player> Players);
+    public record InitialDeal(Dealer Dealer, List<Player> Players);
 }

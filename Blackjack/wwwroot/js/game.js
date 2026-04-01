@@ -2,29 +2,21 @@
 
 // Onload
 
-window.onload = () => {
+function enableRegistration() {
     addInputSanitiser("player-1");
     document
         .getElementById("add-player-btn")
         .addEventListener("click", registerPlayer);
+}
 
+function initialiseGame() {
     initialiseSettings();
     initialiseChat();
-};
+}
 
 // ------------------------------------------------------------
 
 // Pregame
-
-function sanitiseInputs(e) {
-    e.target.value = e.target.value.replace(/[^A-Za-z\s\d]/gi, "");
-}
-
-function addInputSanitiser(playerUsernameId) {
-    document
-        .getElementById(playerUsernameId)
-        .addEventListener("input", sanitiseInputs);
-}
 
 function createPotentialPlayerElement(LAST_ADD_PLAYER_EL) {
     let potentialPlayerEl = LAST_ADD_PLAYER_EL.cloneNode(true);
@@ -225,23 +217,6 @@ function displayLimitReachedMsg() {
 
 // ------------------------------------------------------------
 
-// Utilities
-
-function timeout(ms) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-async function sleep(ms = 1500) {
-    await delay(() => void 0, ms);
-}
-
-async function delay(fn, ms = 1500, ...args) {
-    await timeout(ms);
-    return fn(...args);
-}
-
-// ------------------------------------------------------------
-
 // Play area
 
 var username = "";
@@ -290,6 +265,8 @@ observer.observe($("main").get(0), {
 $(window).resize(updateView);
 
 async function loadGame(NUM_ROUNDS, DEALER, PLAYER) {
+    console.log("Loading game...");
+
     document.querySelector("footer").classList.add("game-footer");
 
     document.getElementById("intro").remove();
@@ -366,11 +343,45 @@ async function loadGame(NUM_ROUNDS, DEALER, PLAYER) {
     });
 
     constructPlayerHand("player-hand", PLAYER.Hand);
-    initialiseRound(NUM_ROUNDS, PLAYER, DEALER);
+    setRoundState(NUM_ROUNDS, PLAYER, DEALER);
 
     document.getElementById("username").textContent = `${username}`;
 
     document.getElementById("game-container").classList.remove("d-none");
+    
+    console.log("Game loaded");
+}
+
+function restoreSettings(PLAYER) {
+    let dealerRecordPerRoundSettingEl = document.getElementById("per-round");
+    let dealerRecordPerPlayerSettingEl = document.getElementById("per-player");
+    let othersRecordMsgsSettingEl = document.getElementById("others-records-log-msgs-enabled");
+    
+    document.getElementById("action-log-msgs-enabled").checked = PLAYER.ActionLogMsgsEnabled;
+    document.getElementById("dealer-record-log-msgs-enabled").checked = PLAYER.DealerRecordLogMsgsEnabled;
+
+    if (!PLAYER.DealerRecordLogMsgsEnabled) {
+        dealerRecordPerRoundSettingEl.setAttribute("disabled", true);
+        dealerRecordPerPlayerSettingEl.setAttribute("disabled", true);
+    }
+
+    dealerRecordPerRoundSettingEl.checked = PLAYER.DealerRecordPerRound;
+    dealerRecordPerPlayerSettingEl.checked = !PLAYER.DealerRecordPerRound;
+
+    document.getElementById("others-log-msgs-enabled").checked = PLAYER.OthersLogMsgsEnabled;
+
+    if (!PLAYER.OthersLogMsgsEnabled) {
+        othersRecordMsgsSettingEl.setAttribute("disabled", true);
+    }
+
+    othersRecordMsgsSettingEl.checked = PLAYER.OthersRecordsLogMsgsEnabled;
+
+    if (sessionStorage.getItem("chat") == "off") {
+        document.getElementById("chat-enabled").checked = false;
+        processEnabledChatSetting("off");
+    }
+
+    existingFormData = new FormData(document.getElementById("settings-form"));
 }
 
 function setSymbol(SUITE) {
@@ -420,30 +431,36 @@ async function hit(PLAYER) {
     if (PLAYER.HandValue > 21) {
         document.getElementById("hitBtn").remove();
         document.getElementById("standBtn").remove();
-        document
-            .getElementById("player-hand")
-            .getElementsByClassName("card-status")[0].textContent = "BUST!";
     }
 }
 
-async function stand() {
-    document.getElementById("hitBtn").remove();
-    document.getElementById("standBtn").remove();
+function setTurnStatus(STATUS) {
     document
         .getElementById("player-hand")
-        .getElementsByClassName("card-status")[0].textContent = "You stood";
+        .getElementsByClassName("card-status")[0].textContent = STATUS;
 }
 
-async function dealersTurn(DEALER) {
+function initialiseDealersTurn() {
+    document.getElementsByClassName("player-actions")[0].innerHTML = "";
+
     let dealerStatusEl = document
         .getElementById("dealer-position")
         .getElementsByClassName("card-status")[0];
 
     dealerStatusEl.textContent = "Dealer's turn";
 
+    return dealerStatusEl;
+}
+
+async function dealersTurn(DEALER) {
+    let dealerStatusEl = initialiseDealersTurn();
+
     await sleep();
 
-    document.getElementById("hole").remove();
+    const HOLE_CARD = document.getElementById("hole");
+    if (HOLE_CARD != null) {
+        HOLE_CARD.remove();
+    }
 
     await dealDealer(DEALER.Hand).then(async () => {
         if (DEALER.HandValue > 21) {
@@ -454,24 +471,45 @@ async function dealersTurn(DEALER) {
     });
 }
 
-async function displayResults(PLAYER_RECORD) {
-    await delay(() => {
-        document
-            .getElementById("dealer-position")
-            .getElementsByClassName("card-status")[0].textContent =
-            PLAYER_RECORD.DealerRoundResult;
+async function displayDealersTurnState(DEALER) {
+    let dealerStatusEl = initialiseDealersTurn();
 
-        document
-            .getElementById("player-hand")
-            .getElementsByClassName("card-status")[0].textContent =
-            `You ${PLAYER_RECORD.RoundResult.toLowerCase()}${
-                PLAYER_RECORD.RoundResult == "Won"
-                    ? "!"
-                    : PLAYER_RECORD.RoundResult == "Lost"
-                      ? " :("
-                      : ""
-            }`;
-    });
+    const HOLE_CARD = document.getElementById("hole");
+    if (HOLE_CARD != null) {
+        HOLE_CARD.remove();
+    }
+
+    let dealerCardsEl = document
+        .getElementById("dealer-hand")
+        .getElementsByClassName("cards")[0];
+
+    for (let i = dealerCardsEl.childElementCount; i < DEALER.Hand.length; i++) {
+        dealerCardsEl.appendChild(generateCard(DEALER.Hand[i]));
+    }
+
+    if (DEALER.HandValue > 21) {
+        dealerStatusEl.textContent = "BUST!";
+    } else {
+        dealerStatusEl.textContent = "Stands";
+    }
+}
+
+async function displayResults(PLAYER_RECORD) {
+    document
+        .getElementById("dealer-position")
+        .getElementsByClassName("card-status")[0].textContent =
+        PLAYER_RECORD.DealerRoundResult;
+
+    document
+        .getElementById("player-hand")
+        .getElementsByClassName("card-status")[0].textContent =
+        `You ${PLAYER_RECORD.RoundResult.toLowerCase()}${
+            PLAYER_RECORD.RoundResult == "Won"
+                ? "!"
+                : PLAYER_RECORD.RoundResult == "Lost"
+                    ? " :("
+                    : ""
+        }`;
 }
 
 function displayRecord(PLAYER_RECORD) {
@@ -488,7 +526,7 @@ async function newRound(NUM_ROUNDS, DEALER, PLAYER) {
         .querySelectorAll(".card-status")
         .forEach((el) => (el.textContent = ""));
 
-    initialiseRound(NUM_ROUNDS, PLAYER, DEALER);
+    setRoundState(NUM_ROUNDS, PLAYER, DEALER);
 }
 
 function generateCard(CARD) {
@@ -537,15 +575,9 @@ function generateHitStandBtns() {
 
     document.getElementById("standBtn").addEventListener("click", (e) => {
         e.preventDefault();
-        (async () => {
-            try {
-                await stand();
-                CONN.invoke("SendTurnPlayerStatus", "stood");
-                CONN.invoke("BeginNextTurn");
-            } catch (err) {
-                console.error(err);
-            }
-        })();
+        document.getElementById("hitBtn").remove();
+        document.getElementById("standBtn").remove();
+        CONN.invoke("PerformStand");
     });
 }
 
@@ -587,16 +619,19 @@ async function generateNextRoundBtn() {
     }
 }
 
-function generateInitialPlayerHand(PLAYER_HAND_EL_ID, PLAYER_HAND) {
+function generatePlayerHand(PLAYER_HAND_EL_ID, PLAYER_HAND) {
     let playerCardsEl = document
         .getElementById(PLAYER_HAND_EL_ID)
         .getElementsByClassName("cards")[0];
-    playerCardsEl.appendChild(generateCard(PLAYER_HAND[0]));
-    playerCardsEl.appendChild(generateCard(PLAYER_HAND[1]));
+
+    for (let i = 0; i < PLAYER_HAND.length; i++) {
+        playerCardsEl.appendChild(generateCard(PLAYER_HAND[i]));
+    }
+    
     return playerCardsEl;
 }
 
-function generateInitialDealerHand(DEALER) {
+function generateDealerHand(DEALER) {
     let dealerCardsEl = document
         .getElementById("dealer-hand")
         .getElementsByClassName("cards")[0];
@@ -611,7 +646,13 @@ function generateInitialDealerHand(DEALER) {
             .getElementsByClassName("card-status")[0].textContent =
             "Blackjack!";
     } else {
-        dealerCardsEl.appendChild(generateHoleCard());
+        if (DEALER.Hand.length > 1) {
+            for (let i = 1; i < DEALER.Hand.length; i++) {
+                dealerCardsEl.appendChild(generateCard(DEALER.Hand[i]));
+            }
+        } else {
+            dealerCardsEl.appendChild(generateHoleCard());
+        }
     }
 }
 
@@ -627,13 +668,13 @@ function generateHoleCard() {
     return holeCardEl;
 }
 
-function initialiseRound(NUM_ROUNDS, PLAYER, DEALER) {
+function setRoundState(NUM_ROUNDS, PLAYER, DEALER) {
     document.getElementById("round-num").textContent = `${NUM_ROUNDS}`;
 
     checkBlackjack(PLAYER);
 
-    generateInitialDealerHand(DEALER);
-    generateInitialPlayerHand("player-hand", PLAYER.Hand);
+    generateDealerHand(DEALER);
+    generatePlayerHand("player-hand", PLAYER.Hand);
 }
 
 // ------------------------------------------------------------
@@ -722,6 +763,8 @@ function processEnabledChatSetting(SETTING) {
     let logTabBtnEl = document.getElementById("log-tab");
 
     if (SETTING == "on") {
+        sessionStorage.setItem("chat", "on");
+
         if (chatEl.innerHTML == "") {
             chatEl.innerHTML = preservedChat;
             initialiseChat();
@@ -731,6 +774,8 @@ function processEnabledChatSetting(SETTING) {
             preservedChat = chatEl.innerHTML;
         }
     } else {
+        sessionStorage.setItem("chat", "off");
+
         chatTabEl.classList.add("d-none");
         logTabBtnEl.click();
         logTabBtnEl.classList.add("single-tab-btn");
