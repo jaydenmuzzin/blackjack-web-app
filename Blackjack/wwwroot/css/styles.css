@@ -45,11 +45,24 @@ header#page-header {
     z-index: 2; /* Links in the header won't work otherwise. Set at 2 because the carousels are set at z-index: 1 */
 }
 
+h3, h4 {
+    font-style: italic;
+}
+
 main {
     display: inline-flex;
     flex: 1;
     flex-direction: column;
     font-size: 1.1em;
+}
+
+main a {
+    text-decoration: underline;
+}
+
+code {
+    background-color: #fdee93;
+    font-weight: bold;
 }
 
 footer {
